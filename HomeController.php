@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\admin;
+namespace App\Http\Controllers\front;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
@@ -9,90 +9,66 @@ use Illuminate\Support\Facades\DB;
 class HomeController extends Controller
 {
 
+
     public function index()
     {
-        return view("admin.home");
+        $data=DB::select('SELECT * FROM settings');
+        $turler=DB::select('SELECT * FROM turler ORDER BY adi');
+        $kategoriler=DB::select('SELECT * FROM kategoriler WHERE ust_id=0 ORDER BY adi');
+        $yeniler=DB::select('SELECT * FROM urunler ORDER BY adi');
+        $popular=DB::select('SELECT * FROM urunler ORDER BY Id');
+        $menu="home";
+        return view("front.home",compact('turler','kategoriler','yeniler','popular','data','menu'));
     }
 
-    /**
-     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
-     */
-    public function urunler()
+    public function urun($id)
     {
-        $urunler=DB::select('select * from urunler order by adi');
 
-        return view("admin.urun_listesi",['urunler'=>$urunler]);
+        $data=DB::select('SELECT * FROM settings');
+        $turler=DB::select('SELECT * FROM turler ORDER BY adi');
+        $kategoriler=DB::select('SELECT * FROM kategoriler WHERE ust_id=0 ORDER BY adi');
+        $urun=DB::select('SELECT * FROM urunler WHERE Id=?',[$id]);
+        $resimler=DB::select('select * from images where urun_id=?',[$id]);
+        $menu="urun";
+        return view("front.urun_detay",compact('turler','kategoriler','urun','resimler','menu','data'));
     }
-    public function settings()
+
+    public function hakkimizda()
     {
         $data=DB::select('SELECT * FROM settings');
-        return view("admin.settings",['data'=>$data]);
+        $kategoriler=DB::select('SELECT * FROM kategoriler WHERE ust_id=0 ORDER BY adi');
+        $menu="hakkimizda";
+        return view("front.hakkimizda",compact('kategoriler','data','menu'));
     }
 
-    public function settingsupdate(Request $request, $id)
+    public function iletisim()
     {
-
-        DB::table('settings')
-            ->where('Id',$id)
-            ->update([
-                'adi' => $request->adi ,
-                'keywords' => $request->keywords,
-                'description'=>$request->description,
-                'adres'=>$request->adres,
-                'tel'=>$request->tel,
-                'smtpserver'=>$request->smtpserver,
-                'smtpemail'=>$request->smtpemail,
-                'smtppassword'=>$request->smtppassword,
-                'smtpport'=>$request->smtpport,
-                'iletisim'=>$request->iletisim,
-                'hakkimizda'=>$request->hakkimizda,
-            ]);
-
-        return redirect('admin/settings')->with('success', $request->adi.' Ayarlar Güncellendi');
+        $data=DB::select('SELECT * FROM settings');
+        $kategoriler=DB::select('SELECT * FROM kategoriler WHERE ust_id=0 ORDER BY adi');
+        $menu="iletisim";
+        return view("front.iletisim",compact('kategoriler','data','menu'));
     }
 
-    public function messages()
+    public function bize_yazin_formu()
     {
-
-        $data=DB::select('SELECT * FROM messages ORDER BY id DESC');
-        return view('admin.mesaj_listesi',['datas'=>$data]);
+        $data=DB::select('SELECT * FROM settings');
+        $kategoriler=DB::select('SELECT * FROM kategoriler WHERE ust_id=0 ORDER BY adi');
+        $menu="bizeyazin";
+        return view("front.bizeyazin",compact('kategoriler','data','menu'));
     }
-    public function message_edit($id)
+
+    public function bize_yazin_kaydet(Request $request)
     {
-
-        $data=DB::select('SELECT * FROM messages WHERE id='.$id);
-        return view('admin.mesaj_duzenleme_formu',['veri'=>$data]);
+        DB::table('messages')->insert([
+            ['name' => $request->get('name') ,
+                'email' => $request->get('email'),
+                'subject'=>$request->subject,
+                'message'=>$request->message,
+                'ip' => request()->ip() ]
+        ]);
+        return redirect('/bize_yazin')->with('success', 'Mesajınız Alınmıştır');
     }
 
-    public function message_update(Request $request, $id)
-    {
 
-        DB::table('messages')
-            ->where('Id',$id)
-            ->update([
-                'note' => $request->note ,
-                'status' => 'Okundu'
-            ]);
-
-        return redirect('admin/mesajlar')->with('success',' Mesaj Okundu/ Güncellendi');
-    }
-    public function message_del($id)
-    {
-        DB::select("DELETE FROM messages WHERE Id=?",[$id]);
-        return redirect('admin/mesajlar')->with('success','Mesaj Silindi');
-    }
-
-    public function uye()
-    {
-        $data=DB::select('SELECT * FROM users ORDER BY id');
-        return view('admin.uyeler',['datas'=>$data]);
-    }
-
-    public function uye_edit($id)
-    {
-
-        $data=DB::select('SELECT * FROM users WHERE id='.$id);
-        return view('admin.uye_duzenleme_formu',['veri'=>$data]);
-    }
 
 }
