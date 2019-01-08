@@ -1,2 +1,2 @@
 # Online-Giyim
-Türkiye'de yaygın olarak kullanılan online alışveriş sitelerini referans alınarak giyim üzerine geliştirilmiş laravel framework tabanlı php  projesidir.
+It is a laravel framework-based PHP project developed on clothing by reference to online shopping sites that are widely used in Turkey.
